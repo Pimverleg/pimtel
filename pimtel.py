@@ -341,6 +341,9 @@ def print_windows_settings():
     if steam_language:
         print(f"Steam Language: {steam_language}")
 
+    # check music
+    print_music_folder_analysis("Linux")   
+
     human_readable_languages = get_human_readable_languages(installed_languages + ie_languages + ([steam_language] if steam_language else []))
     print("Installed Languages (Human-readable):")
     for language in human_readable_languages:
@@ -373,6 +376,10 @@ def print_linux_settings():
     # print the language found in steam, this one requeres more testing.
     if steam_language:
         print(f"Steam Language: {steam_language}")
+
+
+     # check music
+    print_music_folder_analysis("Linux")   
 
     # retrieve the language codes and make them human readable
     human_readable_languages = get_human_readable_languages(installed_languages + firefox_languages + chrome_languages + ([steam_language] if steam_language else []))
@@ -456,6 +463,79 @@ def get_chrome_history():
     conn.close()
     os.remove("/tmp/History")
     return filter_non_com_urls(history_entries)
+
+
+
+def detect_language_in_text(text):
+    """
+    Detects the presence of specific language scripts in a given text.
+
+    Args:
+        text (str): The text to analyze.
+
+    Returns:
+        list: A list of detected languages based on scripts.
+    """
+    scripts = {
+        'Cyrillic': re.compile(r'[\u0400-\u04FF]'),
+        'Arabic': re.compile(r'[\u0600-\u06FF]'),
+        'Chinese': re.compile(r'[\u4E00-\u9FFF]'),
+        'Greek': re.compile(r'[\u0370-\u03FF]')
+    }
+    
+    detected_languages = []
+    
+    for language, pattern in scripts.items():
+        if pattern.search(text):
+            detected_languages.append(language)
+    
+    return detected_languages
+
+
+def print_music_folder_analysis(os_name):
+    """
+    Print analysis of the Music folder for potential language usage.
+    """
+    if os_name == "Windows":
+        music_folder = os.path.expandvars(r'%USERPROFILE%\Music')
+    else:  # Assuming Linux
+        music_folder = os.path.expanduser("~/Music")
+
+    music_languages = scan_music_folder(music_folder)
+    print("Detected Languages in Music Folder:")
+    for language, data in music_languages.items():
+        examples = ', '.join(data["examples"])
+        print(f"  - {language} x {data['count']}: {examples}")
+
+
+def scan_music_folder(folder_path):
+    """
+    Scans the Music folder for file and folder names to gather clues about the user's language.
+
+    Args:
+        folder_path (str): The path to the Music folder.
+
+    Returns:
+        dict: A dictionary with detected languages, their counts, and example files.
+    """
+    detected_languages = defaultdict(lambda: {"count": 0, "examples": []})
+    
+    if not os.path.exists(folder_path):
+        return detected_languages
+
+    for root, dirs, files in os.walk(folder_path):
+        for name in dirs + files:
+            languages = detect_language_in_text(name)
+            for language in languages:
+                detected_languages[language]["count"] += 1
+                if len(detected_languages[language]["examples"]) < 3:
+                    detected_languages[language]["examples"].append(name)
+    
+    return detected_languages
+
+
+
+
 
 
 def main():
