@@ -480,7 +480,11 @@ def detect_language_in_text(text):
         'Cyrillic': re.compile(r'[\u0400-\u04FF]'),
         'Arabic': re.compile(r'[\u0600-\u06FF]'),
         'Chinese': re.compile(r'[\u4E00-\u9FFF]'),
-        'Greek': re.compile(r'[\u0370-\u03FF]')
+        'Greek': re.compile(r'[\u0370-\u03FF]'),
+        'Hebrew': re.compile(r'[\u0590-\u05FF]'),
+        'Devanagari': re.compile(r'[\u0900-\u097F]'),
+        'Thai': re.compile(r'[\u0E00-\u0E7F]'),
+        'Hangul': re.compile(r'[\uAC00-\uD7AF]')
     }
     
     detected_languages = []
